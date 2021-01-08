@@ -4,7 +4,7 @@
 	<main class="mt-8">
 		<form>
 			<div class="flex flex-col items-center">
-				<InputField v-model="inputData.username" label="Username" name="username" id="username" />
+				<InputField v-model="inputData.login" label="Username or email" name="login" id="login" />
 				<InputField v-model="inputData.password" label="Password" name="password" id="password" type="password" />
 			</div>
 
@@ -33,14 +33,14 @@ export default defineComponent({
 
 	setup() {
 		const inputData = {
-			username: '',
+			login: '',
 			password: '',
 		};
 
 		const submit = async (event: Event) => {
 			event.preventDefault();
 
-			if (inputData.username != '' && inputData.password != '') {
+			if (inputData.login != '' && inputData.password != '') {
 				const tokenData = await post('login', inputData);
 
 				cookie.save('token', tokenData.token, tokenData.expiration);
