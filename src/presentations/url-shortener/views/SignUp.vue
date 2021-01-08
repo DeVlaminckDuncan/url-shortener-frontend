@@ -4,7 +4,10 @@
 	<main class="mt-8">
 		<form>
 			<div class="flex flex-col items-center">
+				<InputField v-model="inputData.firstName" label="First name" name="firstName" id="firstName" />
+				<InputField v-model="inputData.lastName" label="Last name" name="lastName" id="lastName" />
 				<InputField v-model="inputData.username" label="Username" name="username" id="username" />
+				<InputField v-model="inputData.email" label="Email" name="email" id="email" type="email" />
 				<InputField v-model="inputData.password" label="Password" name="password" id="password" type="password" />
 			</div>
 
@@ -33,7 +36,10 @@ export default defineComponent({
 
 	setup() {
 		const inputData = {
+			firstName: '',
+			lastName: '',
 			username: '',
+			email: '',
 			password: '',
 		};
 
