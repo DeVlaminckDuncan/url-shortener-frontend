@@ -1,11 +1,13 @@
 type VisitData = {
+	shortenedUrlId: string;
 	date: Date;
-	visits: number;
 };
 
 export default interface ShortenedUrl {
 	id: string;
+	createdAt: Date;
 	name: string;
-	url: string;
+	shortUrl: string;
+	longUrl: string;
 	visits: Array<VisitData>;
 }
