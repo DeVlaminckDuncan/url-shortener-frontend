@@ -23,6 +23,7 @@
 import { defineComponent } from 'vue';
 import route from '@/router';
 
+import { decodeToken } from '@/utils/token';
 import { post } from '@/utils/api';
 import cookie from '@/utils/cookie';
 import Button from '../components/Button.vue';
@@ -46,10 +47,11 @@ export default defineComponent({
 		const submit = async (event: Event) => {
 			event.preventDefault();
 
-			if (inputData.username != '' && inputData.password != '') {
-				const tokenData = await post('signup', inputData);
+			if (inputData.firstName != '' && inputData.lastName != '' && inputData.username != '' && inputData.email != '' && inputData.password != '') {
+				const data = await post('signup', inputData);
 
-				cookie.save('token', tokenData.token, tokenData.expiration);
+				const decodedToken = decodeToken(data.token);
+				cookie.save('token', data.token, decodedToken.expirationDate);
 
 				route.push('/dashboard');
 			}
