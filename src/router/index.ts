@@ -6,9 +6,30 @@ import { capitalize } from '@/utils/dataFormattings';
 const routes: Array<RouteRecordRaw> = [
 	{
 		path: '/',
-		alias: '/home',
-		name: 'Home',
-		component: () => import(/* webpackChunkName: "home" */ '../presentations/url-shortener/views/Home.vue'),
+		name: 'CheckToken',
+		component: () => import(/* webpackChunkName: "checkToken" */ '../presentations/url-shortener/views/CheckToken.vue'),
+		children: [
+			{
+				path: '/',
+				alias: '/home',
+				name: 'Home',
+				component: () => import(/* webpackChunkName: "home" */ '../presentations/url-shortener/views/Home.vue'),
+			},
+
+			{
+				path: '/',
+				alias: '/dashboard',
+				name: 'Dashboard',
+				component: () => import(/* webpackChunkName: "dashboard" */ '../presentations/url-shortener/views/Dashboard.vue'),
+			},
+
+			{
+				path: '/',
+				alias: '/settings',
+				name: 'Settings',
+				component: () => import(/* webpackChunkName: "settings" */ '../presentations/url-shortener/views/Settings.vue'),
+			},
+		],
 	},
 
 	{
@@ -21,12 +42,6 @@ const routes: Array<RouteRecordRaw> = [
 		path: '/signup',
 		name: 'SignUp',
 		component: () => import(/* webpackChunkName: "signUp" */ '../presentations/url-shortener/views/SignUp.vue'),
-	},
-
-	{
-		path: '/dashboard',
-		name: 'Dashboard',
-		component: () => import(/* webpackChunkName: "dashboard" */ '../presentations/url-shortener/views/Dashboard.vue'),
 	},
 ];
 
