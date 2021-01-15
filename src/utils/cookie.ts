@@ -28,4 +28,10 @@ export default {
 
 		document.cookie = `${name}=${value}${expiresString}`;
 	},
+
+	delete: (name: string) => {
+		const expires = new Date(0);
+
+		document.cookie = `${name}=; expires=${expires.toString()}`;
+	},
 };
