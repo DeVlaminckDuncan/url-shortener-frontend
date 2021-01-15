@@ -19,11 +19,19 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import route from '@/router';
+import store, { MutationTypes } from '@/store';
 
+import { decodeToken } from '@/utils/token';
 import { post } from '@/utils/api';
 import cookie from '@/utils/cookie';
 import Button from '../components/Button.vue';
 import InputField from '../components/InputField.vue';
+
+type LoginData = {
+	email?: string;
+	username?: string;
+	password: string;
+};
 
 export default defineComponent({
 	components: {
@@ -41,9 +49,26 @@ export default defineComponent({
 			event.preventDefault();
 
 			if (inputData.login != '' && inputData.password != '') {
-				const tokenData = await post('login', inputData);
+				const loginData: LoginData = {
+					username: inputData.login,
+					email: inputData.login,
+					password: inputData.password,
+				};
 
-				cookie.save('token', tokenData.token, tokenData.expiration);
+				const emailRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+				const isEmailAddress = emailRegex.test(String(inputData.login).toLowerCase());
+				if (isEmailAddress) {
+					delete loginData.username;
+				} else {
+					delete loginData.email;
+				}
+
+				const data = await post('login', loginData);
+
+				const decodedToken = decodeToken(data.token);
+				cookie.save('token', data.token, decodedToken.expirationDate);
+
+				store.commit(MutationTypes.SET_USERID, data.userID);
 
 				route.push('/dashboard');
 			}
