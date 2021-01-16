@@ -5,9 +5,9 @@
 		<div class="flex justify-center mb-12">
 			<form>
 				<InputField v-model="state.inputData.name" :value="state.inputData.name" label="Name" name="urlName" id="urlName" />
-				<InputField v-model="state.inputData.longURL" :value="state.inputData.longURL" label="Long URL" name="longUrl" id="longUrl" type="url" />
+				<InputField v-model="state.inputData.url" :value="state.inputData.url" label="URL" name="url" id="url" type="url" />
 
-				<button @click="submitLongUrl" class="customButton customButton--blue">Create</button>
+				<Button @click="submitLongUrl" text="Create" color="blue-main" :classes="['px-4', 'py-2', 'rounded-lg', 'transition', 'duration-75', 'mr-4']" />
 			</form>
 		</div>
 
@@ -32,7 +32,7 @@
 					</div>
 
 					<p class="mt-4">{{ `${url.visits} visit${url.visits == 0 || url.visits > 1 ? 's' : ''}` }}</p>
-					<button v-if="url.visits > 0" @click="showChart(index)" class="customButton customButton--blue my-2">View analytics</button>
+					<Button v-if="url.visits > 0" @click="showChart(index)" text="View analytics" color="blue-main" :classes="['px-4', 'py-2', 'rounded-lg', 'transition', 'duration-75', 'mr-4']" />
 
 					<p class="mt-2">Created on {{ formatDate(url.shortenedURL.createdAt) }}</p>
 
@@ -83,9 +83,10 @@ import { formatDate } from '@/utils/dataFormattings';
 import { checkNewToken, checkTokenExists } from '@/utils/token';
 import { deleteById, get, post, put } from '@/utils/api';
 import cookie from '@/utils/cookie';
+import ShortenedUrl from '@/models/ShortenedUrl';
 import InputField from '../components/InputField.vue';
 import HeaderLinks from '../components/HeaderLinks.vue';
-import ShortenedUrl from '@/models/ShortenedUrl';
+import Button from '../components/Button.vue';
 
 type UrlData = {
 	shortenedURL: ShortenedUrl;
@@ -97,7 +98,7 @@ type UrlData = {
 
 type NewUrlData = {
 	name: string;
-	longURL: string;
+	url: string;
 	userID: string;
 };
 
@@ -111,6 +112,7 @@ export default defineComponent({
 		InputField,
 		VueApexCharts,
 		HeaderLinks,
+		Button,
 	},
 
 	setup() {
@@ -118,7 +120,7 @@ export default defineComponent({
 			urls: [],
 			inputData: {
 				name: '',
-				longURL: '',
+				url: '',
 				userID: store.getters.getUserId(),
 			},
 		});
@@ -169,7 +171,7 @@ export default defineComponent({
 		const submitLongUrl = async (event: Event) => {
 			event.preventDefault();
 
-			if (state.inputData.name != '' && state.inputData.longURL != '' && state.inputData.userID != '') {
+			if (state.inputData.name != '' && state.inputData.url != '' && state.inputData.userID != '') {
 				const token = cookie.get('token');
 				const data = await post('short-urls', state.inputData, token);
 
@@ -182,7 +184,7 @@ export default defineComponent({
 					return;
 				}
 
-				state.inputData.longURL = 'http://localhost:9001/' + data.shortenedURL.shortURL;
+				state.inputData.url = 'http://localhost:9001/' + data.shortenedURL.shortURL;
 
 				const shortenedUrl: ShortenedUrl = data.shortenedURL;
 
@@ -208,7 +210,7 @@ export default defineComponent({
 		const updateShortUrl = async (urlIndex: number) => {
 			const url = state.urls[urlIndex];
 
-			if (url.editingName != url.shortenedURL.name) {
+			if (url.editingName != url.shortenedURL.name && url.editingName != '') {
 				const newData = {
 					name: url.editingName,
 				};
@@ -289,30 +291,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.customButton {
-	@apply px-4;
-	@apply py-2;
-	@apply rounded-md;
-	@apply text-white;
-	@apply shadow-md;
-
-	&:hover {
-		opacity: 0.8;
-	}
-
-	&--blue {
-		background-color: #0056c7;
-	}
-
-	&--green {
-		background-color: #07c700;
-	}
-
-	&--red {
-		background-color: #c70000;
-	}
-}
-
 .customUrlItem {
 	border: 1px solid rgb(238, 238, 238);
 	background-color: rgb(253, 253, 253);
