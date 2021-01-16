@@ -1,5 +1,5 @@
 <template>
-	<button :style="`${width ? `width:${width}` : ''};${height ? `height:${height}` : ''}`" :class="[bgClassName, classes]" class="text-white font-semibold shadow-md focus:outline-none">{{ text }}</button>
+	<button :style="`${width ? `width:${width}` : ''};${height ? `height:${height}` : ''}`" :class="[bgClassName, classes]" class="text-white shadow-md focus:outline-none">{{ text }}</button>
 </template>
 
 <script lang="ts">
