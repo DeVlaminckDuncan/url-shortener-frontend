@@ -71,14 +71,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, ref } from 'vue';
+import { defineComponent, reactive } from 'vue';
 import route from '@/router';
-import store, { MutationTypes } from '@/store';
+import store from '@/store';
 
 import VueApexCharts from 'vue-apexcharts';
 
 import { formatDate } from '@/utils/dataFormattings';
-import { checkNewToken } from '@/utils/token';
+import { checkNewToken, checkTokenExists } from '@/utils/token';
 import { deleteById, get, post, put } from '@/utils/api';
 import cookie from '@/utils/cookie';
 import InputField from '../components/InputField.vue';
@@ -141,13 +141,7 @@ export default defineComponent({
 				const userId = store.getters.getUserId();
 				const data = await get(`short-urls/${userId}`, token);
 
-				if (data.statusCode != 'OK') {
-					if (data.statusCode == 'NON_EXISTING_USERTOKEN') {
-						cookie.delete('token');
-
-						route.replace('/login');
-					}
-				}
+				checkTokenExists(data.statusCode, route);
 
 				const newToken = checkNewToken(data);
 				if (newToken) {
@@ -175,13 +169,7 @@ export default defineComponent({
 				const token = cookie.get('token');
 				const data = await post('short-urls', state.inputData, token);
 
-				if (data.statusCode != 'OK') {
-					if (data.statusCode == 'NON_EXISTING_USERTOKEN') {
-						cookie.delete('token');
-
-						route.replace('/login');
-					}
-				}
+				checkTokenExists(data.statusCode, route);
 
 				const newToken = checkNewToken(data);
 				if (newToken) {
@@ -192,20 +180,31 @@ export default defineComponent({
 
 				state.inputData.longURL = 'http://localhost:9001/' + data.shortenedURL.shortURL;
 
+				const shortenedUrl: ShortenedUrl = data.shortenedURL;
+
+				shortenedUrl.createdAt = new Date(shortenedUrl.createdAt);
+
 				const urlData: UrlData = {
-					shortenedURL: data.shortenedURL,
+					shortenedURL: shortenedUrl,
 					visits: 0,
 					editing: false,
 					editingName: '',
 				};
 				state.urls.push(urlData);
+
+				// Not the best way to do this but atleast it works...
+				setTimeout(() => {
+					// @ts-ignore
+					document.querySelector('#longUrl').select();
+					document.execCommand('copy');
+				}, 10);
 			}
 		};
 
 		const updateShortUrl = async (urlIndex: number) => {
 			const url = state.urls[urlIndex];
 
-			if (url.editingName == url.shortenedURL.name) {
+			if (url.editingName != url.shortenedURL.name) {
 				const newData = {
 					name: url.editingName,
 				};
@@ -214,13 +213,7 @@ export default defineComponent({
 
 				const data = await put('short-urls', url.shortenedURL.id, newData, token);
 
-				if (data.statusCode != 'OK') {
-					if (data.statusCode == 'NON_EXISTING_USERTOKEN') {
-						cookie.delete('token');
-
-						route.replace('/login');
-					}
-				}
+				checkTokenExists(data.statusCode, route);
 
 				const newToken = checkNewToken(data);
 				if (newToken) {
@@ -229,11 +222,7 @@ export default defineComponent({
 					return;
 				}
 
-				// url.shortenedURL.name = url.editingName;
-				state.urls[urlIndex].shortenedURL.name = url.editingName;
-				console.log(url.editingName);
-
-				console.log(state.urls[urlIndex]);
+				url.shortenedURL.name = url.editingName;
 			}
 
 			cancelEditingItem(urlIndex);
@@ -246,13 +235,7 @@ export default defineComponent({
 
 			const data = await deleteById('short-urls', url.shortenedURL.id, token);
 
-			if (data.statusCode != 'OK') {
-				if (data.statusCode == 'NON_EXISTING_USERTOKEN') {
-					cookie.delete('token');
-
-					route.replace('/login');
-				}
-			}
+			checkTokenExists(data.statusCode, route);
 
 			const newToken = checkNewToken(data);
 			if (newToken) {
