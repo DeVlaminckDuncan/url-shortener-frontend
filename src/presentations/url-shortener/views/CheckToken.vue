@@ -13,10 +13,6 @@ export default defineComponent({
 		const checkTokenCookie = () => {
 			if (cookie.get('token') == '') {
 				route.replace('/home');
-			} else {
-				const path = ref(route.currentRoute.value.path).value as string;
-
-				route.replace('/dashboard');
 			}
 		};
 
