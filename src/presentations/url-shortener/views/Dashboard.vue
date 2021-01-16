@@ -2,7 +2,8 @@
 	<main>
 		<div class="flex justify-center mb-12">
 			<form>
-				<InputField v-model="inputData.url" label="Long URL" name="longUrl" id="longUrl" />
+				<InputField v-model="state.inputData.name" :value="state.inputData.name" label="Name" name="urlName" id="urlName" />
+				<InputField v-model="state.inputData.longURL" :value="state.inputData.longURL" label="Long URL" name="longUrl" id="longUrl" type="url" />
 
 				<button @click="submitLongUrl" class="customButton customButton--blue">Create</button>
 			</form>
@@ -11,41 +12,60 @@
 		<hr class="mb-12 opacity-10" />
 
 		<div v-if="state.urls.length">
-			<div v-for="url of state.urls" :key="url.id" class="customUrlItem flex justify-between items-center mb-6 mx-6 p-6 shadow-sm">
+			<div v-for="(url, index) of state.urls" :key="url.shortenedURL.id" class="customUrlItem flex justify-between items-center mb-6 mx-6 p-6 shadow-sm">
 				<div class="text-left">
-					<!-- TODO: Add all the properties and display them nicely -->
 					<div>
-						<!-- change to input if editing -->
-						<span v-if="editingItem">{{ url.shortenedURL.name }}</span>
-						<input v-else type="url" :value="url.shortenedURL.name" class="w-full" />
+						<div v-if="url.editing" class="relative mb-3">
+							<input v-model="url.editingName" class="w-max block border border-black border-opacity-25 rounded px-2 py-1 focus:outline-none" id="urlName" name="urlName" type="text" placeholder="Name" required />
+						</div>
+						<span v-else>{{ url.shortenedURL.name }}</span>
 					</div>
+
 					<div>
-						<a :href="'http://localhost:9001/' + url.shortenedURL.shortURL" target="_blank">{{ 'go-url-shortener.netlify.app/' + url.shortenedURL.shortURL }}</a>
+						<a :href="'http://localhost:9001/' + url.shortenedURL.shortURL" target="_blank">{{ 'http://localhost:9001/' + url.shortenedURL.shortURL }}</a>
 					</div>
+
 					<div>
 						<a :href="url.shortenedURL.longURL" target="_blank">{{ url.shortenedURL.longURL }}</a>
 					</div>
 
+					<p class="mt-4">{{ `${url.visits} visit${url.visits == 0 || url.visits > 1 ? 's' : ''}` }}</p>
+					<button v-if="url.visits > 0" @click="showChart(index)" class="customButton customButton--blue my-2">View analytics</button>
+
+					<p class="mt-2">Created on {{ formatDate(url.shortenedURL.createdAt) }}</p>
+
 					<!-- TODO: Graph of url.visits -->
 					<!-- <VueApexCharts width="500" type="bar" :options="chartOptions" :series="series" /> -->
-
-					<!-- TODO: Edit & delete -->
 				</div>
 
 				<div class="flex">
-					<!-- hide this one by default, show if editing -->
-					<div v-if="!editingItem">
-						<button @click="saveItem" class="customButton customButton--green">Save</button>
-						<button @click="cancelEditingItem" class="customButton customButton--red ml-4">Cancel</button>
+					<div v-if="url.editing" class="flex">
+						<svg @click="updateShortUrl(index)" class="cursor-pointer customIcon--green" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6e6e6e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+
+						<svg @click="cancelEditingItem(index)" class="cursor-pointer ml-2 customIcon--red" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6e6e6e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+							<line x1="18" y1="6" x2="6" y2="18"></line>
+							<line x1="6" y1="6" x2="18" y2="18"></line>
+						</svg>
 					</div>
 
-					<!-- show this one by default, hide if editing -->
-					<div v-if="editingItem" class="ml-4">
-						<button @click="editItem" class="customButton customButton--green">Edit</button>
-						<button @click="deleteItem" class="customButton customButton--red ml-4">Delete</button>
+					<div v-else class="ml-4 flex">
+						<svg @click="editItem(index)" class="cursor-pointer customIcon--green" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6e6e6e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+							<path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"></path>
+							<polygon points="18 2 22 6 12 16 8 16 8 12 18 2"></polygon>
+						</svg>
+
+						<svg @click="deleteShortUrl(index)" class="cursor-pointer ml-2 customIcon--red" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6e6e6e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+							<polyline points="3 6 5 6 21 6"></polyline>
+							<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+							<line x1="10" y1="11" x2="10" y2="17"></line>
+							<line x1="14" y1="11" x2="14" y2="17"></line>
+						</svg>
 					</div>
 				</div>
 			</div>
+		</div>
+		<div v-else>
+			You haven't created any short URLs yet!
 		</div>
 	</main>
 </template>
@@ -57,8 +77,9 @@ import store, { MutationTypes } from '@/store';
 
 import VueApexCharts from 'vue-apexcharts';
 
-import { decodeToken, checkNewToken } from '@/utils/token';
-import { get, post } from '@/utils/api';
+import { formatDate } from '@/utils/dataFormattings';
+import { checkNewToken } from '@/utils/token';
+import { deleteById, get, post, put } from '@/utils/api';
 import cookie from '@/utils/cookie';
 import InputField from '../components/InputField.vue';
 import ShortenedUrl from '@/models/ShortenedUrl';
@@ -66,10 +87,20 @@ import ShortenedUrl from '@/models/ShortenedUrl';
 type UrlData = {
 	shortenedURL: ShortenedUrl;
 	analytics?: Array<string>;
+	visits: Number;
+	editing: Boolean;
+	editingName: string;
+};
+
+type NewUrlData = {
+	name: string;
+	longURL: string;
+	userID: string;
 };
 
 type State = {
 	urls: Array<UrlData>;
+	inputData: NewUrlData;
 };
 
 export default defineComponent({
@@ -79,13 +110,14 @@ export default defineComponent({
 	},
 
 	setup() {
-		const state = reactive({
+		const state: State = reactive({
 			urls: [],
+			inputData: {
+				name: '',
+				longURL: '',
+				userID: store.getters.getUserId(),
+			},
 		});
-
-		const inputData = {
-			url: '',
-		};
 
 		const chartOptions = {
 			chart: {
@@ -101,8 +133,6 @@ export default defineComponent({
 				data: [30, 40, 45, 50, 49, 60, 70, 91],
 			},
 		];
-
-		const editingItem = ref(false);
 
 		const getData = async () => {
 			const token = cookie.get('token');
@@ -126,7 +156,13 @@ export default defineComponent({
 					return;
 				}
 
-				state.urls = data.urls;
+				if (data.urls) {
+					state.urls = data.urls;
+					state.urls.forEach((url) => {
+						url.visits = url.analytics ? url.analytics.length : 0;
+						url.shortenedURL.createdAt = new Date(url.shortenedURL.createdAt);
+					});
+				}
 			} else {
 				route.replace('/login');
 			}
@@ -135,40 +171,131 @@ export default defineComponent({
 		const submitLongUrl = async (event: Event) => {
 			event.preventDefault();
 
-			if (inputData.url != '') {
-				const data = await post('create-short-url', inputData);
+			if (state.inputData.name != '' && state.inputData.longURL != '' && state.inputData.userID != '') {
+				const token = cookie.get('token');
+				const data = await post('short-urls', state.inputData, token);
 
-				if (data.statusCode == 'OK') {
-					inputData.url = data.shortURL;
+				if (data.statusCode != 'OK') {
+					if (data.statusCode == 'NON_EXISTING_USERTOKEN') {
+						cookie.delete('token');
+
+						route.replace('/login');
+					}
 				}
+
+				const newToken = checkNewToken(data);
+				if (newToken) {
+					await submitLongUrl(event);
+
+					return;
+				}
+
+				state.inputData.longURL = 'http://localhost:9001/' + data.shortenedURL.shortURL;
+
+				const urlData: UrlData = {
+					shortenedURL: data.shortenedURL,
+					visits: 0,
+					editing: false,
+					editingName: '',
+				};
+				state.urls.push(urlData);
 			}
 		};
 
-		const saveItem = () => {};
+		const updateShortUrl = async (urlIndex: number) => {
+			const url = state.urls[urlIndex];
 
-		const cancelEditingItem = () => {
-			editingItem.value = false;
+			if (url.editingName == url.shortenedURL.name) {
+				const newData = {
+					name: url.editingName,
+				};
+
+				const token = cookie.get('token');
+
+				const data = await put('short-urls', url.shortenedURL.id, newData, token);
+
+				if (data.statusCode != 'OK') {
+					if (data.statusCode == 'NON_EXISTING_USERTOKEN') {
+						cookie.delete('token');
+
+						route.replace('/login');
+					}
+				}
+
+				const newToken = checkNewToken(data);
+				if (newToken) {
+					await updateShortUrl(urlIndex);
+
+					return;
+				}
+
+				// url.shortenedURL.name = url.editingName;
+				state.urls[urlIndex].shortenedURL.name = url.editingName;
+				console.log(url.editingName);
+
+				console.log(state.urls[urlIndex]);
+			}
+
+			cancelEditingItem(urlIndex);
 		};
 
-		const editItem = () => {
-			editingItem.value = true;
+		const deleteShortUrl = async (urlIndex: number) => {
+			const url = state.urls[urlIndex];
+
+			const token = cookie.get('token');
+
+			const data = await deleteById('short-urls', url.shortenedURL.id, token);
+
+			if (data.statusCode != 'OK') {
+				if (data.statusCode == 'NON_EXISTING_USERTOKEN') {
+					cookie.delete('token');
+
+					route.replace('/login');
+				}
+			}
+
+			const newToken = checkNewToken(data);
+			if (newToken) {
+				await deleteShortUrl(urlIndex);
+
+				return;
+			}
+
+			state.urls.splice(urlIndex, 1);
 		};
 
-		const deleteItem = () => {};
+		const editItem = (urlIndex: number) => {
+			const url = state.urls[urlIndex];
+
+			url.editing = true;
+			url.editingName = url.shortenedURL.name;
+		};
+
+		const cancelEditingItem = (urlIndex: number) => {
+			const url = state.urls[urlIndex];
+
+			url.editing = false;
+			url.editingName = '';
+		};
+
+		const showChart = (urlIndex: number) => {};
 
 		getData();
 
 		return {
+			formatDate,
+
 			state,
-			inputData,
+
 			submitLongUrl,
-			chartOptions,
-			series,
-			saveItem,
+			updateShortUrl,
 			cancelEditingItem,
 			editItem,
-			deleteItem,
-			editingItem,
+			deleteShortUrl,
+			showChart,
+
+			chartOptions,
+			series,
 		};
 	},
 });
@@ -202,5 +329,19 @@ export default defineComponent({
 .customUrlItem {
 	border: 1px solid rgb(238, 238, 238);
 	background-color: rgb(253, 253, 253);
+}
+
+.customIcon {
+	&--green {
+		&:hover {
+			stroke: #07c700;
+		}
+	}
+
+	&--red {
+		&:hover {
+			stroke: #c70000;
+		}
+	}
 }
 </style>
