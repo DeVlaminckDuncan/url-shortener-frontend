@@ -24,6 +24,8 @@ module.exports = {
 				main: '#196cbf',
 				dark: '#125699',
 			},
+			red: '#c70000',
+			green: '#07c700',
 		},
 	},
 	corePlugins: {},
