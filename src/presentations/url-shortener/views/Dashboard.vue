@@ -1,4 +1,6 @@
 <template>
+	<HeaderLinks />
+
 	<main>
 		<div class="flex justify-center mb-12">
 			<form>
@@ -82,6 +84,7 @@ import { checkNewToken, checkTokenExists } from '@/utils/token';
 import { deleteById, get, post, put } from '@/utils/api';
 import cookie from '@/utils/cookie';
 import InputField from '../components/InputField.vue';
+import HeaderLinks from '../components/HeaderLinks.vue';
 import ShortenedUrl from '@/models/ShortenedUrl';
 
 type UrlData = {
@@ -107,6 +110,7 @@ export default defineComponent({
 	components: {
 		InputField,
 		VueApexCharts,
+		HeaderLinks,
 	},
 
 	setup() {

@@ -1,4 +1,6 @@
 <template>
+	<HeaderLinks />
+
 	<h1>Login</h1>
 
 	<main class="mt-8">
@@ -26,6 +28,7 @@ import { post } from '@/utils/api';
 import cookie from '@/utils/cookie';
 import Button from '../components/Button.vue';
 import InputField from '../components/InputField.vue';
+import HeaderLinks from '../components/HeaderLinks.vue';
 
 type LoginData = {
 	email?: string;
@@ -37,6 +40,7 @@ export default defineComponent({
 	components: {
 		Button,
 		InputField,
+		HeaderLinks,
 	},
 
 	setup() {
