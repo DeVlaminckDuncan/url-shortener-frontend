@@ -1,6 +1,6 @@
 <template>
 	<div :class="marginBottom ? 'mb-6' : ''" class="relative">
-		<input @change="changeInputValue" class="input block border border-black border-opacity-25 rounded shadow-md px-3 py-2 focus:outline-none" :id="id" :type="type" :name="name ? name : ''" :placeholder="placeholder" :value="value" :step="step" :autocomplete="autocomplete ? 'on' : 'off'" required />
+		<input @change="changeInputValue" class="w-64 input block border border-black border-opacity-25 rounded shadow-md px-3 py-2 focus:outline-none" :id="id" :type="type" :name="name ? name : ''" :placeholder="placeholder" :value="value" :step="step" :autocomplete="autocomplete ? 'on' : 'off'" required />
 		<label v-if="label" class="label absolute text-opacity-75 bg-white px-3 py-1 pointer-events-none" :for="id">{{ label }}</label>
 	</div>
 </template>
