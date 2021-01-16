@@ -1,4 +1,6 @@
+import { Router } from 'vue-router';
 import jwt_decode from 'jwt-decode';
+
 import cookie from './cookie';
 
 export const decodeToken = (token: string) => {
@@ -20,4 +22,14 @@ export const checkNewToken = (data: any): Boolean => {
 	}
 
 	return false;
+};
+
+export const checkTokenExists = (statusCode: string, route: Router) => {
+	if (statusCode != 'OK') {
+		if (statusCode == 'NON_EXISTING_USERTOKEN') {
+			cookie.delete('token');
+
+			route.replace('/login');
+		}
+	}
 };
