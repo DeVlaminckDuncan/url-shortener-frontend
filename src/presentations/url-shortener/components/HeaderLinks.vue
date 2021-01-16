@@ -4,6 +4,8 @@
 		<span v-if="loggedIn">
 			|
 			<router-link to="/dashboard">Dashboard</router-link>
+			|
+			<router-link to="/settings">Settings</router-link>
 		</span>
 		<span v-if="!loggedIn">
 			|
