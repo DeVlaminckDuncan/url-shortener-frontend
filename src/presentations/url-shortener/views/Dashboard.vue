@@ -5,9 +5,9 @@
 		<div class="flex justify-center mb-12">
 			<form>
 				<InputField v-model="state.inputData.name" :value="state.inputData.name" label="Name" name="urlName" id="urlName" />
-				<InputField v-model="state.inputData.url" :value="state.inputData.url" label="URL" name="url" id="url" type="url" />
+				<InputField v-model="state.inputData.longURL" :value="state.inputData.longURL" label="URL" name="url" id="url" type="url" />
 
-				<Button @click="submitLongUrl" text="Create" color="blue-main" :classes="['px-4', 'py-2', 'rounded-lg', 'transition', 'duration-75', 'mr-4']" />
+				<Button @click="submitLongUrl" text="Create" color="blue-main" :classes="['px-6', 'py-2', 'rounded-lg', 'transition', 'duration-75']" />
 			</form>
 		</div>
 
@@ -32,7 +32,7 @@
 					</div>
 
 					<p class="mt-4">{{ `${url.visits} visit${url.visits == 0 || url.visits > 1 ? 's' : ''}` }}</p>
-					<Button v-if="url.visits > 0" @click="showChart(index)" text="View analytics" color="blue-main" :classes="['px-4', 'py-2', 'rounded-lg', 'transition', 'duration-75', 'mr-4']" />
+					<Button v-if="url.visits > 0" @click="showChart(index)" text="View analytics" color="blue-main" :classes="['px-6', 'py-2', 'rounded-lg', 'transition', 'duration-75']" />
 
 					<p class="mt-2">Created on {{ formatDate(url.shortenedURL.createdAt) }}</p>
 
@@ -98,7 +98,7 @@ type UrlData = {
 
 type NewUrlData = {
 	name: string;
-	url: string;
+	longURL: string;
 	userID: string;
 };
 
@@ -120,7 +120,7 @@ export default defineComponent({
 			urls: [],
 			inputData: {
 				name: '',
-				url: '',
+				longURL: '',
 				userID: store.getters.getUserId(),
 			},
 		});
@@ -171,7 +171,7 @@ export default defineComponent({
 		const submitLongUrl = async (event: Event) => {
 			event.preventDefault();
 
-			if (state.inputData.name != '' && state.inputData.url != '' && state.inputData.userID != '') {
+			if (state.inputData.name != '' && state.inputData.longURL != '' && state.inputData.userID != '') {
 				const token = cookie.get('token');
 				const data = await post('short-urls', state.inputData, token);
 
@@ -184,7 +184,7 @@ export default defineComponent({
 					return;
 				}
 
-				state.inputData.url = 'http://localhost:9001/' + data.shortenedURL.shortURL;
+				state.inputData.longURL = 'http://localhost:9001/' + data.shortenedURL.shortURL;
 
 				const shortenedUrl: ShortenedUrl = data.shortenedURL;
 
@@ -203,7 +203,7 @@ export default defineComponent({
 					// @ts-ignore
 					document.querySelector('#longUrl').select();
 					document.execCommand('copy');
-				}, 10);
+				}, 20);
 			}
 		};
 
