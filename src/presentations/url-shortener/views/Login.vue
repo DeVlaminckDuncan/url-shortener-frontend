@@ -5,9 +5,16 @@
 
 	<main class="mt-8">
 		<form>
-			<div class="flex flex-col items-center">
-				<InputField v-model="inputData.login" label="Username or email" name="login" id="login" />
-				<InputField v-model="inputData.password" label="Password" name="password" id="password" type="password" />
+			<div class="flex flex-col items-center mb-2">
+				<InputField v-model="state.inputData.login" label="Username or email" name="login" id="login" :marginBottom="state.loginError == ''" />
+				<p v-if="state.loginError" class="text-red text-sm mt-2 mb-4">
+					{{ state.loginError }}
+				</p>
+
+				<InputField v-model="state.inputData.password" label="Password" name="password" id="password" type="password" :marginBottom="state.passwordError == ''" />
+				<p v-if="state.passwordError" class="text-red text-sm mt-2 mb-4">
+					{{ state.passwordError }}
+				</p>
 			</div>
 
 			<div class="flex justify-center items-center">
@@ -19,7 +26,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, reactive } from 'vue';
 import route from '@/router';
 import store, { MutationTypes } from '@/store';
 
@@ -44,23 +51,40 @@ export default defineComponent({
 	},
 
 	setup() {
-		const inputData = {
-			login: '',
-			password: '',
-		};
+		const state = reactive({
+			loginError: '',
+			passwordError: '',
+
+			inputData: {
+				login: '',
+				password: '',
+			},
+		});
 
 		const submit = async (event: Event) => {
 			event.preventDefault();
 
-			if (inputData.login != '' && inputData.password != '') {
+			if (state.inputData.login == '') {
+				state.loginError = 'Enter your username or email.';
+			} else {
+				state.loginError = '';
+			}
+
+			if (state.inputData.password == '') {
+				state.passwordError = 'Enter your password.';
+			} else {
+				state.passwordError = '';
+			}
+
+			if (state.inputData.login != '' && state.inputData.password != '') {
 				const loginData: LoginData = {
-					username: inputData.login,
-					email: inputData.login,
-					password: inputData.password,
+					username: state.inputData.login,
+					email: state.inputData.login,
+					password: state.inputData.password,
 				};
 
 				const emailRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-				const isEmailAddress = emailRegex.test(String(inputData.login).toLowerCase());
+				const isEmailAddress = emailRegex.test(String(state.inputData.login).toLowerCase());
 				if (isEmailAddress) {
 					delete loginData.username;
 				} else {
@@ -68,6 +92,12 @@ export default defineComponent({
 				}
 
 				const data = await post('login', loginData);
+
+				if (data.statusCode == 'NON_EXISTING_USER') {
+					state.loginError = 'This username or email does not exist.';
+				} else if (data.statusCode == 'WRONG_PASSWORD') {
+					state.passwordError = 'Wrong password.';
+				}
 
 				const decodedToken = decodeToken(data.token);
 				cookie.save('token', data.token, decodedToken.expirationDate);
@@ -79,7 +109,8 @@ export default defineComponent({
 		};
 
 		return {
-			inputData,
+			state,
+
 			submit,
 		};
 	},
