@@ -50,13 +50,26 @@
 						</svg>
 					</div>
 
+					<div v-else-if="url.deleting">
+						<p class="mb-2">Are you sure you want to delete this shortened URL?</p>
+
+						<div class="flex justify-end">
+							<svg @click="deleteShortUrl(index)" class="cursor-pointer customIcon--green" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6e6e6e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+
+							<svg @click="toggleDeletingItem(url)" class="cursor-pointer ml-2 customIcon--red" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6e6e6e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+								<line x1="18" y1="6" x2="6" y2="18"></line>
+								<line x1="6" y1="6" x2="18" y2="18"></line>
+							</svg>
+						</div>
+					</div>
+
 					<div v-else class="ml-4 flex">
 						<svg @click="editItem(index)" class="cursor-pointer customIcon--green" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6e6e6e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
 							<path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"></path>
 							<polygon points="18 2 22 6 12 16 8 16 8 12 18 2"></polygon>
 						</svg>
 
-						<svg @click="deleteShortUrl(index)" class="cursor-pointer ml-2 customIcon--red" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6e6e6e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+						<svg @click="toggleDeletingItem(url)" class="cursor-pointer ml-2 customIcon--red" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6e6e6e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
 							<polyline points="3 6 5 6 21 6"></polyline>
 							<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
 							<line x1="10" y1="11" x2="10" y2="17"></line>
@@ -94,6 +107,7 @@ type UrlData = {
 	visits: Number;
 	editing: Boolean;
 	editingName: string;
+	deleting: Boolean;
 };
 
 type NewUrlData = {
@@ -195,6 +209,7 @@ export default defineComponent({
 					visits: 0,
 					editing: false,
 					editingName: '',
+					deleting: false,
 				};
 				state.urls.push(urlData);
 
@@ -232,6 +247,10 @@ export default defineComponent({
 			}
 
 			cancelEditingItem(urlIndex);
+		};
+
+		const toggleDeletingItem = (url: UrlData) => {
+			url.deleting = !url.deleting;
 		};
 
 		const deleteShortUrl = async (urlIndex: number) => {
@@ -280,6 +299,7 @@ export default defineComponent({
 			updateShortUrl,
 			cancelEditingItem,
 			editItem,
+			toggleDeletingItem,
 			deleteShortUrl,
 			showChart,
 
