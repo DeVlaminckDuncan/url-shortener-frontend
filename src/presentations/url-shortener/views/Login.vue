@@ -11,7 +11,7 @@
 			</div>
 
 			<div class="flex justify-center items-center">
-				<Button @click="submit" text="Log in" color="blue-main" :classes="['px-12', 'py-2', 'rounded-lg', 'transition', 'duration-75', 'mr-4']" />
+				<Button @click="submit" text="Log in" color="blue-main" :classes="['px-6', 'py-2', 'rounded-lg', 'transition', 'duration-75', 'mr-4']" />
 				<router-link to="/signup" class="text-blue-main">Sign up</router-link>
 			</div>
 		</form>
