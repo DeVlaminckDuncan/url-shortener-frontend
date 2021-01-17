@@ -33,9 +33,9 @@ export default defineComponent({
 		const logOut = () => {
 			cookie.delete('token');
 
-			route.push('/');
-
 			loggedIn.value = false;
+
+			route.push('/home');
 		};
 
 		return {
