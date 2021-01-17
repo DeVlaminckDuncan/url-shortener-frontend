@@ -41,7 +41,7 @@ export const put = (endpoint: string, id: string, payload: object, token?: strin
 				'content-type': 'application/json',
 				Authorization: token ? `Bearer ${token}` : '',
 			},
-		});
+		}).then((r) => r.json());
 	} catch (error) {
 		return new Error(error);
 	}
@@ -54,7 +54,7 @@ export const deleteById = (endpoint: string, id: string, token?: string): any =>
 			headers: {
 				Authorization: token ? `Bearer ${token}` : '',
 			},
-		});
+		}).then((r) => r.json());
 	} catch (error) {
 		return new Error(error);
 	}
