@@ -17,7 +17,7 @@
 			<div v-for="(url, index) of state.urls" :key="url.shortenedURL.id" class="customUrlItem flex justify-between items-center mb-6 mx-6 p-6 shadow-sm">
 				<div class="text-left">
 					<div>
-						<div v-if="url.editing" class="relative mb-3">
+						<div v-if="url.editingName" class="relative mb-3">
 							<input v-model="url.editingName" class="w-max block border border-black border-opacity-25 rounded px-2 py-1 focus:outline-none" id="urlName" name="urlName" type="text" placeholder="Name" required />
 						</div>
 						<span v-else>{{ url.shortenedURL.name }}</span>
@@ -32,7 +32,7 @@
 					</div>
 
 					<p class="mt-4">{{ `${url.visits} visit${url.visits == 0 || url.visits > 1 ? 's' : ''}` }}</p>
-					<Button v-if="url.visits > 0" @click="showChart(index)" text="View analytics" color="blue-main" :classes="['px-6', 'py-2', 'rounded-lg', 'transition', 'duration-75']" />
+					<Button v-if="url.visits > 0" @click="toggleChart(url)" :text="url.analyticsButtonText" color="blue-main" :classes="['px-6', 'py-2', 'rounded-lg', 'transition', 'duration-75']" />
 
 					<p class="mt-2">Created on {{ formatDate(url.shortenedURL.createdAt) }}</p>
 
@@ -41,10 +41,10 @@
 				</div>
 
 				<div class="flex">
-					<div v-if="url.editing" class="flex">
-						<svg @click="updateShortUrl(index)" class="cursor-pointer customIcon--green" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6e6e6e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+					<div v-if="url.editingName" class="flex">
+						<svg @click="updateShortUrl(url)" class="cursor-pointer customIcon--green" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6e6e6e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
 
-						<svg @click="cancelEditingItem(index)" class="cursor-pointer ml-2 customIcon--red" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6e6e6e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+						<svg @click="cancelEditingItem(url)" class="cursor-pointer ml-2 customIcon--red" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6e6e6e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
 							<line x1="18" y1="6" x2="6" y2="18"></line>
 							<line x1="6" y1="6" x2="18" y2="18"></line>
 						</svg>
@@ -64,7 +64,7 @@
 					</div>
 
 					<div v-else class="ml-4 flex">
-						<svg @click="editItem(index)" class="cursor-pointer customIcon--green" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6e6e6e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+						<svg @click="editItem(url)" class="cursor-pointer customIcon--green" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6e6e6e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
 							<path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"></path>
 							<polygon points="18 2 22 6 12 16 8 16 8 12 18 2"></polygon>
 						</svg>
@@ -104,8 +104,8 @@ import Button from '../components/Button.vue';
 type UrlData = {
 	shortenedURL: ShortenedUrl;
 	analytics?: Array<string>;
+	analyticsButtonText: string;
 	visits: Number;
-	editing: Boolean;
 	editingName: string;
 	deleting: Boolean;
 };
@@ -175,6 +175,7 @@ export default defineComponent({
 					state.urls.forEach((url) => {
 						url.visits = url.analytics ? url.analytics.length : 0;
 						url.shortenedURL.createdAt = new Date(url.shortenedURL.createdAt);
+						url.analyticsButtonText = 'Show chart';
 					});
 				}
 			} else {
@@ -206,8 +207,8 @@ export default defineComponent({
 
 				const urlData: UrlData = {
 					shortenedURL: shortenedUrl,
+					analyticsButtonText: 'Show chart',
 					visits: 0,
-					editing: false,
 					editingName: '',
 					deleting: false,
 				};
@@ -216,15 +217,13 @@ export default defineComponent({
 				// Not the best way to do this but atleast it works...
 				setTimeout(() => {
 					// @ts-ignore
-					document.querySelector('#longUrl').select();
+					document.querySelector('#url').select();
 					document.execCommand('copy');
 				}, 20);
 			}
 		};
 
-		const updateShortUrl = async (urlIndex: number) => {
-			const url = state.urls[urlIndex];
-
+		const updateShortUrl = async (url: UrlData) => {
 			if (url.editingName != url.shortenedURL.name && url.editingName != '') {
 				const newData = {
 					name: url.editingName,
@@ -238,7 +237,7 @@ export default defineComponent({
 
 				const newToken = checkNewToken(data);
 				if (newToken) {
-					await updateShortUrl(urlIndex);
+					await updateShortUrl(url);
 
 					return;
 				}
@@ -246,7 +245,7 @@ export default defineComponent({
 				url.shortenedURL.name = url.editingName;
 			}
 
-			cancelEditingItem(urlIndex);
+			cancelEditingItem(url);
 		};
 
 		const toggleDeletingItem = (url: UrlData) => {
@@ -272,21 +271,21 @@ export default defineComponent({
 			state.urls.splice(urlIndex, 1);
 		};
 
-		const editItem = (urlIndex: number) => {
-			const url = state.urls[urlIndex];
-
-			url.editing = true;
+		const editItem = (url: UrlData) => {
 			url.editingName = url.shortenedURL.name;
 		};
 
-		const cancelEditingItem = (urlIndex: number) => {
-			const url = state.urls[urlIndex];
-
-			url.editing = false;
+		const cancelEditingItem = (url: UrlData) => {
 			url.editingName = '';
 		};
 
-		const showChart = (urlIndex: number) => {};
+		const toggleChart = (url: UrlData) => {
+			if (url.analyticsButtonText == 'Show chart') {
+				url.analyticsButtonText = 'Hide chart';
+			} else {
+				url.analyticsButtonText = 'Show chart';
+			}
+		};
 
 		getData();
 
@@ -301,7 +300,7 @@ export default defineComponent({
 			editItem,
 			toggleDeletingItem,
 			deleteShortUrl,
-			showChart,
+			toggleChart,
 
 			chartOptions,
 			series,
