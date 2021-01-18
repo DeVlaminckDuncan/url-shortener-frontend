@@ -36,6 +36,7 @@ export default defineComponent({
 			loggedIn.value = false;
 
 			route.push('/home');
+			window.location.reload();
 		};
 
 		return {
