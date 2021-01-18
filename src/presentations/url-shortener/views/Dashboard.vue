@@ -35,7 +35,7 @@
 					<Button v-if="url.visits > 0" @click="toggleChart(url)" :text="url.analyticsButtonText" color="blue-main" :classes="['px-6', 'py-2', 'rounded-lg', 'transition', 'duration-75']" />
 
 					<div v-if="url.analyticsButtonText == 'Hide chart'">
-						<VueApexCharts :width="state.deviceWidth / 2" type="bar" :options="url.chartOptions" :series="url.chartSeries" />
+						<VueApexCharts type="bar" :options="url.chartOptions" :series="url.chartSeries" :width="state.device.width / (state.device.width >= state.device.height ? 2 : 1.5)" :height="state.device.height / (state.device.height >= state.device.width ? 3 : 2)" />
 					</div>
 
 					<p class="mt-2">Created on {{ formatDate(url.shortenedURL.createdAt) }}</p>
@@ -123,7 +123,10 @@ type NewUrlData = {
 type State = {
 	urls: Array<UrlData>;
 	inputData: NewUrlData;
-	deviceWidth: any;
+	device: {
+		width: any;
+		height: any;
+	};
 };
 
 export default defineComponent({
@@ -140,17 +143,19 @@ export default defineComponent({
 			inputData: {
 				name: '',
 				longURL: '',
-				userID: store.getters.getUserId(),
+				userID: store.getters.getUserId(), // not working after log in ???
 			},
-			deviceWidth: window.innerWidth > 0 ? window.innerWidth : screen.width,
+			device: {
+				width: window.innerWidth > 0 ? window.innerWidth : screen.width,
+				height: window.innerHeight > 0 ? window.innerHeight : screen.height,
+			},
 		});
 
 		const getData = async () => {
 			const token = cookie.get('token');
 
 			if (token) {
-				const userId = store.getters.getUserId();
-				const data = await get(`short-urls/${userId}`, token);
+				const data = await get(`short-urls/${state.inputData.userID}`, token);
 
 				checkTokenExists(data.statusCode, route);
 
@@ -313,7 +318,9 @@ export default defineComponent({
 			}
 		};
 
-		getData();
+		if (state.inputData.userID) {
+			getData();
+		}
 
 		return {
 			formatDate,
