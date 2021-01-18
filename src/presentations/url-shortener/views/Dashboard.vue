@@ -34,10 +34,11 @@
 					<p class="mt-4">{{ `${url.visits} visit${url.visits == 0 || url.visits > 1 ? 's' : ''}` }}</p>
 					<Button v-if="url.visits > 0" @click="toggleChart(url)" :text="url.analyticsButtonText" color="blue-main" :classes="['px-6', 'py-2', 'rounded-lg', 'transition', 'duration-75']" />
 
-					<p class="mt-2">Created on {{ formatDate(url.shortenedURL.createdAt) }}</p>
+					<div v-if="url.analyticsButtonText == 'Hide chart'">
+						<VueApexCharts :width="state.deviceWidth / 2" type="bar" :options="url.chartOptions" :series="url.chartSeries" />
+					</div>
 
-					<!-- TODO: Graph of url.visits -->
-					<!-- <VueApexCharts width="500" type="bar" :options="chartOptions" :series="series" /> -->
+					<p class="mt-2">Created on {{ formatDate(url.shortenedURL.createdAt) }}</p>
 				</div>
 
 				<div class="flex">
@@ -90,7 +91,8 @@ import { defineComponent, reactive } from 'vue';
 import route from '@/router';
 import store from '@/store';
 
-import VueApexCharts from 'vue-apexcharts';
+// @ts-ignore
+import VueApexCharts from 'vue3-apexcharts';
 
 import { formatDate } from '@/utils/dataFormattings';
 import { checkNewToken, checkTokenExists } from '@/utils/token';
@@ -105,6 +107,8 @@ type UrlData = {
 	shortenedURL: ShortenedUrl;
 	analytics?: Array<string>;
 	analyticsButtonText: string;
+	chartOptions?: any;
+	chartSeries?: any;
 	visits: Number;
 	editingName: string;
 	deleting: Boolean;
@@ -119,6 +123,7 @@ type NewUrlData = {
 type State = {
 	urls: Array<UrlData>;
 	inputData: NewUrlData;
+	deviceWidth: any;
 };
 
 export default defineComponent({
@@ -137,22 +142,8 @@ export default defineComponent({
 				longURL: '',
 				userID: store.getters.getUserId(),
 			},
+			deviceWidth: window.innerWidth > 0 ? window.innerWidth : screen.width,
 		});
-
-		const chartOptions = {
-			chart: {
-				id: 'vuechart-example',
-			},
-			xaxis: {
-				categories: [1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998],
-			},
-		};
-		const series = [
-			{
-				name: 'series-1',
-				data: [30, 40, 45, 50, 49, 60, 70, 91],
-			},
-		];
 
 		const getData = async () => {
 			const token = cookie.get('token');
@@ -174,8 +165,43 @@ export default defineComponent({
 					state.urls = data.urls;
 					state.urls.forEach((url) => {
 						url.visits = url.analytics ? url.analytics.length : 0;
-						url.shortenedURL.createdAt = new Date(url.shortenedURL.createdAt);
+
 						url.analyticsButtonText = 'Show chart';
+
+						if (url.analytics) {
+							url.analytics.sort();
+
+							const dates: Array<string> = [];
+							url.analytics.forEach((visit) => {
+								const date = visit.split(' ')[0];
+								dates.push(date);
+							});
+
+							const uniqueDays = new Set(dates);
+
+							const visitsPerDay: Array<Number> = [];
+							uniqueDays.forEach((d) => {
+								const visits = dates.filter((day) => day == d).length;
+								visitsPerDay.push(visits);
+							});
+
+							url.chartOptions = {
+								chart: {
+									id: url.shortenedURL.id,
+								},
+								xaxis: {
+									categories: Array.from(uniqueDays),
+								},
+							};
+							url.chartSeries = [
+								{
+									name: 'Analytics',
+									data: visitsPerDay,
+								},
+							];
+						}
+
+						url.shortenedURL.createdAt = new Date(url.shortenedURL.createdAt);
 					});
 				}
 			} else {
@@ -301,9 +327,6 @@ export default defineComponent({
 			toggleDeletingItem,
 			deleteShortUrl,
 			toggleChart,
-
-			chartOptions,
-			series,
 		};
 	},
 });
