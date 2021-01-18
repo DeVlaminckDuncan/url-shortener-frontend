@@ -6,6 +6,10 @@
 	<main class="mt-8">
 		<form>
 			<div class="flex flex-col items-center">
+				<p v-if="error" class="text-red mb-8">
+					{{ error }}
+				</p>
+
 				<InputField v-model="inputData.firstName" label="First name" name="firstName" id="firstName" />
 				<InputField v-model="inputData.lastName" label="Last name" name="lastName" id="lastName" />
 				<InputField v-model="inputData.username" label="Username" name="username" id="username" />
@@ -22,8 +26,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, ref } from 'vue';
 import route from '@/router';
+import store, { MutationTypes } from '@/store';
 
 import { decodeToken } from '@/utils/token';
 import { post } from '@/utils/api';
@@ -48,21 +53,32 @@ export default defineComponent({
 			password: '',
 		};
 
+		const error = ref('');
+
 		const submit = async (event: Event) => {
 			event.preventDefault();
 
 			if (inputData.firstName != '' && inputData.lastName != '' && inputData.username != '' && inputData.email != '' && inputData.password != '') {
+				error.value = '';
+
 				const data = await post('signup', inputData);
 
 				const decodedToken = decodeToken(data.token);
 				cookie.save('token', data.token, decodedToken.expirationDate);
 
-				route.push('/dashboard');
+				store.commit(MutationTypes.SET_USERID, data.userID);
+
+				route.push('/home');
+				window.location.reload();
+			} else {
+				error.value = 'Fill in all the fields!';
 			}
 		};
 
 		return {
 			inputData,
+			error,
+
 			submit,
 		};
 	},
