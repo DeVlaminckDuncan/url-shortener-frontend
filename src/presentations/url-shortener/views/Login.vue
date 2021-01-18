@@ -6,6 +6,10 @@
 	<main class="mt-8">
 		<form>
 			<div class="flex flex-col items-center mb-2">
+				<p v-if="state.error" class="text-red mb-8">
+					{{ state.error }}
+				</p>
+
 				<InputField v-model="state.inputData.login" label="Username or email" name="login" id="login" :marginBottom="state.loginError == ''" />
 				<p v-if="state.loginError" class="text-red text-sm mt-2 mb-4">
 					{{ state.loginError }}
@@ -54,6 +58,7 @@ export default defineComponent({
 		const state = reactive({
 			loginError: '',
 			passwordError: '',
+			error: '',
 
 			inputData: {
 				login: '',
@@ -77,6 +82,8 @@ export default defineComponent({
 			}
 
 			if (state.inputData.login != '' && state.inputData.password != '') {
+				state.error = '';
+
 				const loginData: LoginData = {
 					username: state.inputData.login,
 					email: state.inputData.login,
@@ -104,7 +111,9 @@ export default defineComponent({
 
 				store.commit(MutationTypes.SET_USERID, data.userID);
 
-				route.push('/dashboard');
+				route.push('/home');
+			} else {
+				state.error = 'Fill in all the fields!';
 			}
 		};
 
