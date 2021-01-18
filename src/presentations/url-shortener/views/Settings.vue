@@ -5,7 +5,11 @@
 
 	<main class="mt-8">
 		<div class="flex justify-center mb-12">
-			<form>
+			<form class="flex flex-col items-center">
+				<p v-if="state.error" class="text-red mb-8">
+					{{ state.error }}
+				</p>
+
 				<InputField v-model="state.user.firstName" :value="state.user.firstName" label="First name" name="firstName" id="firstName" />
 				<InputField v-model="state.user.lastName" :value="state.user.lastName" label="Last name" name="lastName" id="lastName" />
 				<InputField v-model="state.user.username" :value="state.user.username" label="Username" name="username" id="username" />
@@ -22,13 +26,13 @@
 			<div class="flex justify-center">
 				<svg @click="deleteUser" class="cursor-pointer customIcon--green" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6e6e6e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
 
-				<svg @click="toggleConfirmDeleting" class="cursor-pointer ml-2 customIcon--red" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6e6e6e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+				<svg @click="toggleDeleting" class="cursor-pointer ml-2 customIcon--red" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6e6e6e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
 					<line x1="18" y1="6" x2="6" y2="18"></line>
 					<line x1="6" y1="6" x2="18" y2="18"></line>
 				</svg>
 			</div>
 		</div>
-		<Button v-else @click="toggleConfirmDeleting" text="Delete account" color="red" :classes="['px-6', 'py-2', 'rounded-lg', 'transition', 'duration-75']" />
+		<Button v-else @click="toggleDeleting" text="Delete account" color="red" :classes="['px-6', 'py-2', 'rounded-lg', 'transition', 'duration-75']" />
 	</main>
 </template>
 
@@ -50,6 +54,7 @@ type State = {
 	username: string;
 	saveButtonText: string;
 	deletingUser: Boolean;
+	error: string;
 };
 
 export default defineComponent({
@@ -72,6 +77,7 @@ export default defineComponent({
 			username: '',
 			saveButtonText: 'Save',
 			deletingUser: false,
+			error: '',
 		});
 
 		const getData = async () => {
@@ -118,13 +124,15 @@ export default defineComponent({
 
 				if (data.statusCode == 'OK') {
 					state.saveButtonText = 'Data saved!';
+				} else if (data.statusCode == 'DUPLICATE_USER') {
+					state.error = 'That username or email is already in use.';
 				}
 			} else {
 				route.replace('/login');
 			}
 		};
 
-		const toggleConfirmDeleting = () => {
+		const toggleDeleting = () => {
 			state.deletingUser = !state.deletingUser;
 		};
 
@@ -159,7 +167,7 @@ export default defineComponent({
 			state,
 
 			updateUser,
-			toggleConfirmDeleting,
+			toggleDeleting,
 			deleteUser,
 		};
 	},
