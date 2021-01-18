@@ -24,7 +24,7 @@
 					</div>
 
 					<div>
-						<a :href="'http://localhost:9001/' + url.shortenedURL.shortURL" target="_blank">{{ 'http://localhost:9001/' + url.shortenedURL.shortURL }}</a>
+						<a :href="state.backendUrl + url.shortenedURL.shortURL" target="_blank">{{ state.backendUrl + url.shortenedURL.shortURL }}</a>
 					</div>
 
 					<div>
@@ -127,6 +127,7 @@ type State = {
 		width: any;
 		height: any;
 	};
+	backendUrl: string;
 };
 
 export default defineComponent({
@@ -145,10 +146,13 @@ export default defineComponent({
 				longURL: '',
 				userID: store.getters.getUserId(), // not working after log in ???
 			},
+
 			device: {
 				width: window.innerWidth > 0 ? window.innerWidth : screen.width,
 				height: window.innerHeight > 0 ? window.innerHeight : screen.height,
 			},
+
+			backendUrl: process.env.VUE_APP_BACKEND_URL_HEROKU.replace('api/', ''),
 		});
 
 		const getData = async () => {
@@ -230,7 +234,7 @@ export default defineComponent({
 					return;
 				}
 
-				state.inputData.longURL = 'http://localhost:9001/' + data.shortenedURL.shortURL;
+				state.inputData.longURL = state.backendUrl + data.shortenedURL.shortURL;
 
 				const shortenedUrl: ShortenedUrl = data.shortenedURL;
 
