@@ -1,4 +1,4 @@
-const BACKEND_URL: string = process.env.VUE_APP_BACKEND_URL_HEROKU;
+const BACKEND_URL: string = process.env.VUE_APP_BACKEND_URL;
 
 export const get = (endpoint: string, token?: string): any => {
 	try {
