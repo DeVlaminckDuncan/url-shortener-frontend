@@ -88,7 +88,12 @@
 				</g>
 			</svg>
 		</div>
-		<div v-else>
+		<div v-else-if="state.error">
+			<p v-if="state.error" class="text-red mb-8">
+				{{ state.error }}
+			</p>
+		</div>
+		<div v-else-if="state.urlsAmount == 0">
 			You haven't created any short URLs yet!
 		</div>
 	</main>
@@ -130,13 +135,18 @@ type NewUrlData = {
 
 type State = {
 	urls: Array<UrlData>;
+	urlsAmount: Number;
 	inputData: NewUrlData;
+
 	device: {
 		width: any;
 		height: any;
 	};
+
 	backendUrl: string;
+
 	loading: Boolean;
+	error: string;
 };
 
 export default defineComponent({
@@ -150,6 +160,7 @@ export default defineComponent({
 	setup() {
 		const state: State = reactive({
 			urls: [],
+			urlsAmount: -1,
 			inputData: {
 				name: '',
 				longURL: '',
@@ -163,15 +174,25 @@ export default defineComponent({
 
 			backendUrl: process.env.VUE_APP_BACKEND_URL_HEROKU.replace('api/', ''),
 
-			loading: true,
+			loading: false,
+			error: '',
 		});
 
 		const getData = async () => {
 			const token = cookie.get('token');
 
 			if (token) {
+				const timeout = setTimeout(() => {
+					state.loading = true;
+				}, 1000);
 				const data = await get(`short-urls/${state.inputData.userID}`, token);
+				clearTimeout(timeout);
 				state.loading = false;
+
+				if (data.error) {
+					state.error = data.message;
+					return;
+				}
 
 				checkTokenExists(data.statusCode, route);
 
@@ -224,6 +245,8 @@ export default defineComponent({
 
 						url.shortenedURL.createdAt = new Date(url.shortenedURL.createdAt);
 					});
+				} else {
+					state.urlsAmount = 0;
 				}
 			} else {
 				route.replace('/login');

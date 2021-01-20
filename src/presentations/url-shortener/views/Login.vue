@@ -109,20 +109,24 @@ export default defineComponent({
 					delete loginData.email;
 				}
 
-				setTimeout(() => {
+				const timeout = setTimeout(() => {
 					state.loading = true;
 				}, 1000);
-
 				const data = await post('login', loginData);
+				clearTimeout(timeout);
+				state.loading = false;
 
 				if (data.statusCode != 'OK') {
-					state.loading = false;
-
 					if (data.statusCode == 'NON_EXISTING_USER') {
 						state.loginError = 'This username or email does not exist.';
 					} else if (data.statusCode == 'WRONG_PASSWORD') {
 						state.passwordError = 'Wrong password.';
 					}
+				}
+
+				if (data.error) {
+					state.error = data.message;
+					return;
 				}
 
 				const decodedToken = decodeToken(data.token);

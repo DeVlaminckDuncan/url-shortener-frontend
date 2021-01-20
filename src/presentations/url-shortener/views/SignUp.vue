@@ -73,10 +73,17 @@ export default defineComponent({
 			if (inputData.firstName != '' && inputData.lastName != '' && inputData.username != '' && inputData.email != '' && inputData.password != '') {
 				state.error = '';
 
-				setTimeout(() => {
+				const timeout = setTimeout(() => {
 					state.loading = true;
 				}, 1000);
 				const data = await post('signup', inputData);
+				clearTimeout(timeout);
+				state.loading = false;
+
+				if (data.error) {
+					state.error = data.message;
+					return;
+				}
 
 				const decodedToken = decodeToken(data.token);
 				cookie.save('token', data.token, decodedToken.expirationDate);
