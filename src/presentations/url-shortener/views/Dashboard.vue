@@ -172,7 +172,7 @@ export default defineComponent({
 				height: window.innerHeight > 0 ? window.innerHeight : screen.height,
 			},
 
-			backendUrl: process.env.VUE_APP_BACKEND_URL_HEROKU.replace('api/', ''),
+			backendUrl: process.env.VUE_APP_BACKEND_URL.replace('api/', ''),
 
 			loading: false,
 			error: '',
@@ -359,6 +359,11 @@ export default defineComponent({
 
 		if (state.inputData.userID) {
 			getData();
+		} else {
+			cookie.delete('token');
+
+			route.push('/home');
+			window.location.reload();
 		}
 
 		return {
