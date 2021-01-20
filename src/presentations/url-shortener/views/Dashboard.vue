@@ -339,6 +339,10 @@ export default defineComponent({
 			}
 
 			state.urls.splice(urlIndex, 1);
+
+			if (state.urls.length == 0) {
+				state.urlsAmount = 0;
+			}
 		};
 
 		const editItem = (url: UrlData) => {
