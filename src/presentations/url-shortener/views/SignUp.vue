@@ -10,11 +10,11 @@
 					{{ state.error }}
 				</p>
 
-				<InputField v-model="inputData.firstName" label="First name" name="firstName" id="firstName" />
-				<InputField v-model="inputData.lastName" label="Last name" name="lastName" id="lastName" />
-				<InputField v-model="inputData.username" label="Username" name="username" id="username" />
-				<InputField v-model="inputData.email" label="Email" name="email" id="email" type="email" />
-				<InputField v-model="inputData.password" label="Password" name="password" id="password" type="password" />
+				<InputField v-model="inputData.firstName" :value="inputData.firstName" label="First name" name="firstName" id="firstName" />
+				<InputField v-model="inputData.lastName" :value="inputData.lastName" label="Last name" name="lastName" id="lastName" />
+				<InputField v-model="inputData.username" :value="inputData.username" label="Username" name="username" id="username" />
+				<InputField v-model="inputData.email" :value="inputData.email" label="Email" name="email" id="email" type="email" />
+				<InputField v-model="inputData.password" :value="inputData.password" label="Password" name="password" id="password" type="password" />
 			</div>
 
 			<div v-if="state.loading" class="flex justify-center mb-8">

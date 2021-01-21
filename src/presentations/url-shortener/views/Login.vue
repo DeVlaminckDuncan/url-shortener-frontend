@@ -10,12 +10,12 @@
 					{{ state.error }}
 				</p>
 
-				<InputField v-model="state.inputData.login" label="Username or email" name="login" id="login" :marginBottom="state.loginError == ''" />
+				<InputField v-model="state.inputData.login" :value="state.inputData.login" label="Username or email" name="login" id="login" :marginBottom="state.loginError == ''" />
 				<p v-if="state.loginError" class="text-red text-sm mt-2 mb-4">
 					{{ state.loginError }}
 				</p>
 
-				<InputField v-model="state.inputData.password" label="Password" name="password" id="password" type="password" :marginBottom="state.passwordError == ''" />
+				<InputField v-model="state.inputData.password" :value="state.inputData.password" label="Password" name="password" id="password" type="password" :marginBottom="state.passwordError == ''" />
 				<p v-if="state.passwordError" class="text-red text-sm mt-2 mb-4">
 					{{ state.passwordError }}
 				</p>
