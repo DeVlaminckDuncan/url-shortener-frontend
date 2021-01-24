@@ -17,15 +17,13 @@ const routes: Array<RouteRecordRaw> = [
 			},
 
 			{
-				path: '/',
-				alias: '/dashboard',
+				path: '/dashboard',
 				name: 'Dashboard',
 				component: () => import(/* webpackChunkName: "dashboard" */ '../presentations/url-shortener/views/Dashboard.vue'),
 			},
 
 			{
-				path: '/',
-				alias: '/settings',
+				path: '/settings',
 				name: 'Settings',
 				component: () => import(/* webpackChunkName: "settings" */ '../presentations/url-shortener/views/Settings.vue'),
 			},
